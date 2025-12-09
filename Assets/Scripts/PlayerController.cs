@@ -9,7 +9,7 @@ public class PlayerController : MonoBehaviour
     }
 
     public enum CharacterState
-    { 
+    {
         Idle, Walking, Jumping, Dead
     }
 
@@ -27,9 +27,9 @@ public class PlayerController : MonoBehaviour
     public float apexTime = 0.5f;
     public LayerMask groundLayer;
     public float groundCheckDistance = 0.55f;
-    public Vector2 groundCheckSize = new(0.75f, .2f); 
+    public Vector2 groundCheckSize = new(0.75f, .2f);
 
-    private Vector2 velocity;
+    public Vector2 velocity;
     private float acceleration;
     private float deceleration;
 
@@ -45,7 +45,8 @@ public class PlayerController : MonoBehaviour
         deceleration = maxSpeed / decelerationTime;
 
         // TODO: calculate gravity and jump velocity using the formulas from class
-
+        gravity = -2 * apexHeight / (apexTime * apexTime);
+        jumpVel = 2 * apexHeight / apexTime;
         body2D.gravityScale = 0;
     }
 
@@ -54,7 +55,7 @@ public class PlayerController : MonoBehaviour
         playerInput = new()
         {
             x = Input.GetAxisRaw("Horizontal"),
-            y = Input.GetButtonDown("Jump") ? 1 : 0
+            y = Input.GetKeyDown(KeyCode.W) ? 1 : 0
         };
 
         if (playerInput.y == 1) jumpPressed = true;
@@ -104,7 +105,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void ProcessJumpInput()
     {
-        
+        if (IsGrounded() && velocity.y < 0) { velocity.y = 0; jumpPressed = false; }
+        else if (IsGrounded() && jumpPressed && velocity.y == 0) { velocity.y = jumpVel; }
+        else if (!IsGrounded()) { velocity.y += 0.5f * gravity * Time.deltaTime; }
+
+        Debug.Log(jumpPressed);
+        velocity.y = Mathf.Clamp(velocity.y, -jumpVel, jumpVel);
     }
 
     public bool IsWalking()
@@ -114,7 +120,7 @@ public class PlayerController : MonoBehaviour
     public bool IsGrounded()
     {
         Vector3 origin = transform.position + Vector3.down * groundCheckDistance;
-        
+
         DrawGroundCheck(origin);
 
         return Physics2D.OverlapBox(origin, groundCheckSize, 0, groundLayer);
