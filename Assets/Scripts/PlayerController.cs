@@ -18,16 +18,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Rigidbody2D body2D;
 
     [Header("Walk Properties")]
-    public float maxSpeed = 5f;
-    public float accelerationTime = 0.5f;
-    public float decelerationTime = 0.25f;
+    public float maxSpeed;
+    public float accelerationTime;
+    public float decelerationTime;
 
     [Header("Jump Properties")]
-    public float apexHeight = 3.5f;
-    public float apexTime = 0.5f;
+    public float apexHeight;
+    public float apexTime;
+    public float terminalSpeed;
     public LayerMask groundLayer;
-    public float groundCheckDistance = 0.55f;
-    public Vector2 groundCheckSize = new(0.75f, .2f);
+    public float groundCheckDistance;
+    public Vector2 groundCheckSize;
 
     public Vector2 velocity;
     private float acceleration;
@@ -110,7 +111,7 @@ public class PlayerController : MonoBehaviour
         else if (!IsGrounded()) { velocity.y += 0.5f * gravity * Time.deltaTime; }
 
         Debug.Log(jumpPressed);
-        velocity.y = Mathf.Clamp(velocity.y, -jumpVel, jumpVel);
+        velocity.y = Mathf.Max(velocity.y, terminalSpeed);
     }
 
     public bool IsWalking()
