@@ -26,6 +26,8 @@ public class PlayerController : MonoBehaviour
     public float apexHeight;
     public float apexTime;
     public float terminalSpeed;
+    public float coyoteTime;
+    public float fallingTime;
     public LayerMask groundLayer;
     public float groundCheckDistance;
     public Vector2 groundCheckSize;
@@ -38,7 +40,8 @@ public class PlayerController : MonoBehaviour
     private float jumpVel;
 
     private Vector2 playerInput;
-    private bool jumpPressed = false;
+    public bool jumpPressed = false;
+    public bool jumpDuration = false;
 
     void Start()
     {
@@ -58,8 +61,9 @@ public class PlayerController : MonoBehaviour
             x = Input.GetAxisRaw("Horizontal"),
             y = Input.GetKeyDown(KeyCode.W) ? 1 : 0
         };
-
-        if (playerInput.y == 1) jumpPressed = true;
+        if (IsGrounded()) fallingTime = 0; else fallingTime += Time.deltaTime;
+        fallingTime = Mathf.Min(fallingTime, 2 * coyoteTime);
+        if (playerInput.y == 1 && fallingTime <= coyoteTime && !jumpDuration) jumpPressed = true;
     }
 
     private void FixedUpdate()
@@ -106,11 +110,9 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void ProcessJumpInput()
     {
-        if (IsGrounded() && velocity.y < 0) { velocity.y = 0; jumpPressed = false; }
-        else if (IsGrounded() && jumpPressed && velocity.y == 0) { velocity.y = jumpVel; }
-        else if (!IsGrounded()) { velocity.y += 0.5f * gravity * Time.deltaTime; }
-
-        Debug.Log(jumpPressed);
+        if (IsGrounded() && velocity.y < 0) { velocity.y = 0; jumpDuration = false; }
+        else if (IsGrounded() && jumpPressed && velocity.y == 0) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
+        else if (!IsGrounded()) { velocity.y += 0.5f * gravity * Time.fixedDeltaTime; }
         velocity.y = Mathf.Max(velocity.y, terminalSpeed);
     }
 
