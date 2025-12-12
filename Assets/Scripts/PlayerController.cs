@@ -111,7 +111,8 @@ public class PlayerController : MonoBehaviour
     private void ProcessJumpInput()
     {
         if (IsGrounded() && velocity.y < 0) { velocity.y = 0; jumpDuration = false; }
-        else if (IsGrounded() && jumpPressed && velocity.y == 0) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
+        //else if (IsGrounded() && jumpPressed && velocity.y == 0) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
+        else if (jumpPressed) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
         else if (!IsGrounded()) { velocity.y += 0.5f * gravity * Time.fixedDeltaTime; }
         velocity.y = Mathf.Max(velocity.y, terminalSpeed);
     }

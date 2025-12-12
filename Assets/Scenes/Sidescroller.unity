@@ -1755,13 +1755,16 @@ MonoBehaviour:
   apexHeight: 3
   apexTime: 0.35
   terminalSpeed: -24
-  coyoteTime: 1
+  coyoteTime: 0.2
+  fallingTime: 0
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
   groundCheckDistance: 0.55
   groundCheckSize: {x: 0.6, y: 0.2}
   velocity: {x: 0, y: 0}
+  jumpPressed: 0
+  jumpDuration: 0
 --- !u!4 &1433354315
 Transform:
   m_ObjectHideFlags: 0
