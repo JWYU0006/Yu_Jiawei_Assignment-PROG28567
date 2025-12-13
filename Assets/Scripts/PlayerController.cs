@@ -60,6 +60,9 @@ public class PlayerController : MonoBehaviour
     public GameObject coolDownBar;
     public GameObject coolDownTime;
 
+    [Header("Enemy")]
+    public GameObject enemy;
+
     void Start()
     {
         acceleration = maxSpeed / accelerationTime;
@@ -82,7 +85,10 @@ public class PlayerController : MonoBehaviour
         };
         if (IsGrounded()) fallingTime = 0; else fallingTime += Time.deltaTime;
         fallingTime = Mathf.Min(fallingTime, 2 * coyoteTime);
-        if (playerInput.y == 1 && fallingTime <= coyoteTime && !jumpDuration && !dashing) { jumpPressed = true; jumpHolding = true; }
+        if (playerInput.y == 1 && fallingTime <= coyoteTime && !jumpDuration && !dashing)
+        {
+            jumpPressed = true; jumpHolding = true;
+        }
         if (Input.GetKeyUp(KeyCode.W)) { jumpHolding = false; }
         if (jumpHolding && !IsGrounded()) { jumpHoldingTime += Time.deltaTime; }
 
@@ -154,10 +160,14 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void ProcessJumpInput()
     {
-        //if (jumpDuration && jumpHolding && jumpHoldingTime <= jumpHoldingThreshold) { jumpPressed = true; }
-        if (!highJump && jumpDuration && jumpHoldingTime >= jumpHoldingThreshold) { jumpPressed = true; highJump = true; apexHeightMultiplier = 1;}
-        if (IsGrounded() && velocity.y < 0) { velocity.y = 0; jumpDuration = false; highJump = false; jumpHoldingTime = 0; apexHeightMultiplier = 0.7f;}
-        //else if (IsGrounded() && jumpPressed && velocity.y == 0) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
+        if (!highJump && jumpDuration && jumpHoldingTime >= jumpHoldingThreshold)
+        {
+            jumpPressed = true; highJump = true; apexHeightMultiplier = 1;
+        }
+        if (IsGrounded() && velocity.y < 0)
+        {
+            velocity.y = 0; jumpDuration = false; highJump = false; jumpHoldingTime = 0; apexHeightMultiplier = 0.7f;
+        }
         else if (jumpPressed)
         {
             //if (highJump) { apexHeightMultiplier = 1; Debug.Log("1"); }
@@ -202,5 +212,20 @@ public class PlayerController : MonoBehaviour
     public FacingDirection GetFacingDirection()
     {
         return (FacingDirection)playerInput.x;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.name == "Capsule")
+        {
+            if (!dashing)
+            {
+                Debug.Log("Die");
+            }
+            else
+            {
+                Destroy(collision.gameObject);
+            }
+        }
     }
 }
