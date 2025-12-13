@@ -412,9 +412,9 @@ GameObject:
   m_Component:
   - component: {fileID: 994786468}
   - component: {fileID: 994786467}
+  - component: {fileID: 994786471}
   - component: {fileID: 994786470}
   - component: {fileID: 994786469}
-  - component: {fileID: 994786471}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
