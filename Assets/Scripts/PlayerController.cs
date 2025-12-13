@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -36,12 +35,19 @@ public class PlayerController : MonoBehaviour
     private float acceleration;
     private float deceleration;
 
-    private float gravity;
-    private float jumpVel;
+    public float gravity;
+    public float jumpVel;
 
     private Vector2 playerInput;
-    public bool jumpPressed = false;
-    public bool jumpDuration = false;
+    public bool jumpPressed;
+    public bool jumpDuration;
+
+    [Header("Variable Jump Height")]
+    public float jumpHoldingTime;
+    public float jumpHoldingThreshold;
+    public bool jumpHolding;
+    public float apexHeightMultiplier;
+    public bool highJump;
 
     [Header("Dash")]
     public Vector2 currentDirection;
@@ -60,8 +66,6 @@ public class PlayerController : MonoBehaviour
         deceleration = maxSpeed / decelerationTime;
 
         // TODO: calculate gravity and jump velocity using the formulas from class
-        gravity = -2 * apexHeight / (apexTime * apexTime);
-        jumpVel = 2 * apexHeight / apexTime;
         body2D.gravityScale = 0;
 
         currentDirection = Vector2.right;
@@ -69,6 +73,8 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        gravity = -2 * apexHeight / (apexTime * apexTime);
+        jumpVel = 2 * apexHeight * apexHeightMultiplier / apexTime;
         playerInput = new()
         {
             x = Input.GetAxisRaw("Horizontal"),
@@ -76,7 +82,9 @@ public class PlayerController : MonoBehaviour
         };
         if (IsGrounded()) fallingTime = 0; else fallingTime += Time.deltaTime;
         fallingTime = Mathf.Min(fallingTime, 2 * coyoteTime);
-        if (playerInput.y == 1 && fallingTime <= coyoteTime && !jumpDuration && !dashing) jumpPressed = true;
+        if (playerInput.y == 1 && fallingTime <= coyoteTime && !jumpDuration && !dashing) { jumpPressed = true; jumpHolding = true; }
+        if (Input.GetKeyUp(KeyCode.W)) { jumpHolding = false; }
+        if (jumpHolding && !IsGrounded()) { jumpHoldingTime += Time.deltaTime; }
 
         if (Input.GetKeyDown(KeyCode.Space) && dashCoolDown <= 0) dashPressed = true;
         if (dashPressed) { dashCoolDown = 2; }
@@ -146,17 +154,25 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void ProcessJumpInput()
     {
-        if (IsGrounded() && velocity.y < 0) { velocity.y = 0; jumpDuration = false; }
+        //if (jumpDuration && jumpHolding && jumpHoldingTime <= jumpHoldingThreshold) { jumpPressed = true; }
+        if (!highJump && jumpDuration && jumpHoldingTime >= jumpHoldingThreshold) { jumpPressed = true; highJump = true; apexHeightMultiplier = 1;}
+        if (IsGrounded() && velocity.y < 0) { velocity.y = 0; jumpDuration = false; highJump = false; jumpHoldingTime = 0; apexHeightMultiplier = 0.7f;}
         //else if (IsGrounded() && jumpPressed && velocity.y == 0) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
-        else if (jumpPressed) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
+        else if (jumpPressed)
+        {
+            //if (highJump) { apexHeightMultiplier = 1; Debug.Log("1"); }
+            //else { apexHeightMultiplier = 0.7f; Debug.Log("0.7"); }
+            velocity.y = jumpVel;
+            jumpDuration = true; jumpPressed = false;
+        }
         else if (!IsGrounded()) { velocity.y += 0.5f * gravity * Time.fixedDeltaTime; }
         velocity.y = Mathf.Max(velocity.y, terminalSpeed);
     }
     private void ProcessDashInput()
     {
-        if (dashPressed) { velocity = currentDirection * dashSpeed; dashing = true; dashPressed = false; Debug.Log("dashPressed"); }
-        if (dashing && dashTime >= dashDuration) { velocity = Vector2.zero; dashing = false; Debug.Log("dash ends"); }
-        else if (dashing) { velocity = currentDirection * dashSpeed; Debug.Log("dashing"); }
+        if (dashPressed) { velocity = currentDirection * dashSpeed; dashing = true; dashPressed = false; }
+        if (dashing && dashTime >= dashDuration) { velocity = Vector2.zero; dashing = false; }
+        else if (dashing) { velocity = currentDirection * dashSpeed; }
     }
 
     public bool IsWalking()

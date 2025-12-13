@@ -1869,6 +1869,11 @@ MonoBehaviour:
   velocity: {x: 0, y: 0}
   jumpPressed: 0
   jumpDuration: 0
+  jumpHoldingTime: 0
+  jumpHoldingThreshold: 0.1
+  jumpHolding: 0
+  apexHeightMultiplier: 0.7
+  highJump: 0
   currentDirection: {x: 0, y: 0}
   dashPressed: 0
   dashSpeed: 20
@@ -2093,7 +2098,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 0.6434279, b: 0.42452818, a: 1}
+  m_Color: {r: 1, g: 0.6118571, b: 0.37299997, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
