@@ -43,6 +43,17 @@ public class PlayerController : MonoBehaviour
     public bool jumpPressed = false;
     public bool jumpDuration = false;
 
+    [Header("Dash")]
+    public Vector2 currentDirection;
+    public bool dashPressed;
+    public float dashSpeed;
+    public float dashDuration;
+    public float dashTime;
+    public bool dashing;
+    public float dashCoolDown;
+    public GameObject coolDownBar;
+    public GameObject coolDownTime;
+
     void Start()
     {
         acceleration = maxSpeed / accelerationTime;
@@ -52,6 +63,8 @@ public class PlayerController : MonoBehaviour
         gravity = -2 * apexHeight / (apexTime * apexTime);
         jumpVel = 2 * apexHeight / apexTime;
         body2D.gravityScale = 0;
+
+        currentDirection = Vector2.right;
     }
 
     void Update()
@@ -63,18 +76,39 @@ public class PlayerController : MonoBehaviour
         };
         if (IsGrounded()) fallingTime = 0; else fallingTime += Time.deltaTime;
         fallingTime = Mathf.Min(fallingTime, 2 * coyoteTime);
-        if (playerInput.y == 1 && fallingTime <= coyoteTime && !jumpDuration) jumpPressed = true;
+        if (playerInput.y == 1 && fallingTime <= coyoteTime && !jumpDuration && !dashing) jumpPressed = true;
+
+        if (Input.GetKeyDown(KeyCode.Space) && dashCoolDown <= 0) dashPressed = true;
+        if (dashPressed) { dashCoolDown = 2; }
+        dashCoolDown -= Time.deltaTime;
+        dashCoolDown = Mathf.Max(dashCoolDown, 0);
+        if (dashing) dashTime += Time.deltaTime; else dashTime = 0;
+        coolDownTime.transform.localScale = new Vector2(Mathf.Lerp(1, 0, dashCoolDown / 2), 1);
+        if (dashCoolDown == 0)
+        {
+            coolDownBar.GetComponent<SpriteRenderer>().enabled = false;
+            coolDownTime.GetComponent<SpriteRenderer>().enabled = false;
+        }
+        else
+        {
+            coolDownBar.GetComponent<SpriteRenderer>().enabled = true;
+            coolDownTime.GetComponent<SpriteRenderer>().enabled = true;
+        }
     }
 
     private void FixedUpdate()
     {
         MovementUpdate();
+        ProcessDashInput();
     }
 
     private void MovementUpdate()
     {
-        ProcessWalkInput();
-        ProcessJumpInput();
+        if (!dashing)
+        {
+            ProcessWalkInput();
+            ProcessJumpInput();
+        }
 
         body2D.linearVelocity = velocity;
     }
@@ -92,6 +126,8 @@ public class PlayerController : MonoBehaviour
             velocity.x = Mathf.Clamp(velocity.x, -maxSpeed, maxSpeed);
 
             State = CharacterState.Walking;
+
+            currentDirection.x = playerInput.x;
         }
         else if (Mathf.Abs(velocity.x) > 0.005f)
         {
@@ -115,6 +151,12 @@ public class PlayerController : MonoBehaviour
         else if (jumpPressed) { velocity.y = jumpVel; jumpDuration = true; jumpPressed = false; }
         else if (!IsGrounded()) { velocity.y += 0.5f * gravity * Time.fixedDeltaTime; }
         velocity.y = Mathf.Max(velocity.y, terminalSpeed);
+    }
+    private void ProcessDashInput()
+    {
+        if (dashPressed) { velocity = currentDirection * dashSpeed; dashing = true; dashPressed = false; Debug.Log("dashPressed"); }
+        if (dashing && dashTime >= dashDuration) { velocity = Vector2.zero; dashing = false; Debug.Log("dash ends"); }
+        else if (dashing) { velocity = currentDirection * dashSpeed; Debug.Log("dashing"); }
     }
 
     public bool IsWalking()
